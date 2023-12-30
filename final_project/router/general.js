@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios');
 let books = require("./booksdb.js");
 let isValid = require("./auth_users.js").isValid;
 let users = require("./auth_users.js").users;
@@ -31,37 +32,58 @@ public_users.post("/register", (req,res) => {
 });
 
 // Get the book list available in the shop
-public_users.get('/',function (req, res) {
-  //Write your code here
-  res.send(JSON.stringify(books,null,4));
+public_users.get('/', async function (req, res) {
+  try {
+    res.send(JSON.stringify(books, null, 4));
+  } catch (error) {
+    res.status(500).send("Error fetching books");
+  }
 });
+
 
 // Get book details based on ISBN
-public_users.get('/isbn/:isbn',function (req, res) {
-  //Write your code here
-  const isbn = req.params.isbn;
-  res.send(books[isbn])
- });
-  
-// Get book details based on author
-public_users.get('/author/:author',function (req, res) {
-  //Write your code here
-  let booksArray = Object.values(books);
-  let booksbyauthor = booksArray.filter((book)=>{
-    return book.author === req.params.author
-  });
-  res.send(JSON.stringify(booksbyauthor,null,4));
+public_users.get('/isbn/:isbn', async function (req, res) {
+  try {
+    const isbn = req.params.isbn;
+    const book = books[isbn]; 
+    if (book) {
+      res.send(book);
+    } else {
+      res.status(404).send("Book not found");
+    }
+  } catch (error) {
+    res.status(500).send("Error fetching book by ISBN");
+  }
 });
 
-// Get all books based on title
-public_users.get('/title/:title',function (req, res) {
-  //Write your code here
-  let booksArray = Object.values(books);
-  let booksbytitle = booksArray.filter((book)=>{
-    return book.title === req.params.title
-  });
-  res.send(JSON.stringify(booksbytitle,null,4));
+  
+// Get book details based on author
+public_users.get('/author/:author', async function (req, res) {
+  try {
+    const author = req.params.author;
+    let booksbyauthor = Object.values(books).filter((book) => {
+      return book.author === author;
+    });
+    res.send(JSON.stringify(booksbyauthor, null, 4));
+  } catch (error) {
+    res.status(500).send("Error fetching books by author");
+  }
 });
+
+
+// Get all books based on title
+public_users.get('/title/:title', async function (req, res) {
+  try {
+    const title = req.params.title;
+    let booksbytitle = Object.values(books).filter((book) => {
+      return book.title === title;
+    });
+    res.send(JSON.stringify(booksbytitle, null, 4));
+  } catch (error) {
+    res.status(500).send("Error fetching books by title");
+  }
+});
+
 
 //  Get book review
 public_users.get('/review/:isbn',function (req, res) {
